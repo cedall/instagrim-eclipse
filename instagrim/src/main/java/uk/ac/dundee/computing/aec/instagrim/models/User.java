@@ -12,8 +12,10 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+
 import uk.ac.dundee.computing.aec.instagrim.lib.AeSimpleSHA1;
 import uk.ac.dundee.computing.aec.instagrim.stores.Pic;
 
@@ -27,45 +29,43 @@ public class User {
         
     }
     
-    public boolean RegisterUser(String username, String Password){
-        AeSimpleSHA1 sha1handler=  new AeSimpleSHA1();
+    public boolean RegisterUser(String user_name, String password, String first_name, String last_name, String email){
+
         String EncodedPassword=null;
         try {
-            EncodedPassword= sha1handler.SHA1(Password);
+            EncodedPassword= AeSimpleSHA1.SHA1(password);
         }catch (UnsupportedEncodingException | NoSuchAlgorithmException et){
             System.out.println("Can't check your password");
             return false;
         }
         Session session = cluster.connect("instagrim");
-        PreparedStatement ps = session.prepare("insert into userprofiles (login,password) Values(?,?)");
+        PreparedStatement ps = session.prepare("insert into userprofiles (user_name, password, first_name, last_name, email) Values(?,?,?,?,?)");
        
         BoundStatement boundStatement = new BoundStatement(ps);
         session.execute( // this is where the query is executed
                 boundStatement.bind( // here you are binding the 'boundStatement'
-                        username,EncodedPassword));
+                        user_name,EncodedPassword, first_name, last_name, email));
         //We are assuming this always works.  Also a transaction would be good here !
         
         return true;
     }
     
     public boolean IsValidUser(String username, String Password){
-        AeSimpleSHA1 sha1handler=  new AeSimpleSHA1();
+        
         String EncodedPassword=null;
         try {
-            EncodedPassword= sha1handler.SHA1(Password);
+            EncodedPassword= AeSimpleSHA1.SHA1(Password);
         }catch (UnsupportedEncodingException | NoSuchAlgorithmException et){
             System.out.println("Can't check your password");
             return false;
         }
         Session session = cluster.connect("instagrim");
         PreparedStatement ps = session.prepare("select password from userprofiles where login =?");
-        ResultSet rs = null;
+        ResultSet rs;
         BoundStatement boundStatement = new BoundStatement(ps);
-        rs = session.execute( // this is where the query is executed
-                boundStatement.bind( // here you are binding the 'boundStatement'
-                        username));
+        rs = session.execute(boundStatement.bind(username));
         if (rs.isExhausted()) {
-            System.out.println("No Images returned");
+            System.out.println("No password returned");
             return false;
         } else {
             for (Row row : rs) {

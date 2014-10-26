@@ -19,10 +19,13 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.utils.Bytes;
+import com.eaio.uuid.UUID;
+import com.jhlabs.image.ChromeFilter;
+import com.jhlabs.image.GrayscaleFilter;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,8 +33,11 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.LinkedList;
+
 import javax.imageio.ImageIO;
+
 import static org.imgscalr.Scalr.*;
+
 import org.imgscalr.Scalr.Method;
 
 import uk.ac.dundee.computing.aec.instagrim.lib.*;
@@ -57,13 +63,16 @@ public class PicModel {
             String types[]=Convertors.SplitFiletype(type);
             ByteBuffer buffer = ByteBuffer.wrap(b);
             int length = b.length;
-            java.util.UUID picid = convertor.getTimeUUID();
+            java.util.UUID picid = Convertors.getTimeUUID();
             
             //The following is a quick and dirty way of doing this, will fill the disk quickly !
-            Boolean success = (new File("/var/tmp/instagrim/")).mkdirs();
-            FileOutputStream output = new FileOutputStream(new File("/var/tmp/instagrim/" + picid));
+            @SuppressWarnings("unused")
+			Boolean success = (new File("/var/tmp/instagrim/")).mkdirs();
+			FileOutputStream output = new FileOutputStream(new File("/var/tmp/instagrim/" + picid));
 
             output.write(b);
+            
+            filterImage(picid);
             byte []  thumbb = picresize(picid.toString(),types[1]);
             int thumblength= thumbb.length;
             ByteBuffer thumbbuf=ByteBuffer.wrap(thumbb);
@@ -121,18 +130,18 @@ public class PicModel {
     }
 
     public static BufferedImage createThumbnail(BufferedImage img) {
-        img = resize(img, Method.SPEED, 250, OP_ANTIALIAS, OP_GRAYSCALE);
+        img = resize(img, Method.SPEED, 250, OP_ANTIALIAS, OP_DARKER);
         // Let's add a little border before we return result.
         return pad(img, 2);
     }
     
    public static BufferedImage createProcessed(BufferedImage img) {
         int Width=img.getWidth()-1;
-        img = resize(img, Method.SPEED, Width, OP_ANTIALIAS, OP_GRAYSCALE);
+        img = resize(img, Method.SPEED, Width, OP_ANTIALIAS, OP_DARKER);
         return pad(img, 4);
     }
    
-    public java.util.LinkedList<Pic> getPicsForUser(String User) {
+    public java.util.LinkedList<Pic> getPics(String User) {
         java.util.LinkedList<Pic> Pics = new java.util.LinkedList<>();
         Session session = cluster.connect("instagrim");
         PreparedStatement ps = session.prepare("select picid from userpiclist where user =?");
@@ -163,7 +172,6 @@ public class PicModel {
         String type = null;
         int length = 0;
         try {
-            Convertors convertor = new Convertors();
             ResultSet rs = null;
             PreparedStatement ps = null;
          
@@ -212,5 +220,23 @@ public class PicModel {
         return p;
 
     }
-
+    
+    public void filterImage(java.util.UUID picid)
+    {
+    	try {
+    			File input = new File("/var/tmp/instagrim/" + picid);
+    			File output1 = new File("/var/tmp/instagrim/" + picid);
+    			
+    			BufferedImage imageIn = ImageIO.read(input);
+    	    	BufferedImage imageOut = ImageIO.read(input);
+    	    	ChromeFilter  greyFilter = new ChromeFilter ();
+    	    	greyFilter.filter(imageIn, imageOut);
+    	    	ImageIO.write(imageOut, "jpg", output1);
+    	    	
+    		}
+    	catch(Exception e)
+    	{
+    		System.out.println("Cannot apply filter");
+    	}
+    } 
 }

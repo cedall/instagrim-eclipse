@@ -8,9 +8,52 @@ and open the template in the editor.
     Author     : Administrator
 */
 
+body
+{
+	background-color: #837E7C;	
+}
 
-nav {
-    text-align: left;
+th
+{
+	text-align: left;
+}
+
+ul
+{
+	list-style-type: none;
+}
+
+a:link
+{
+	color: #000000;
+	text-decoration: none;
+	font-size: 20px;
+    background-color: #F70D1A;
+}
+
+a:visited
+{
+	color: #000000;
+	text-decoration: none;
+	font-size: 20px;
+    background-color: #F70D1A;
+}
+
+nav 
+{
+    text-align: center;
     border: 2px;
-    float: right;
+    float: right;background-color: #F70D1A;
+	padding: 25px;
+}
+
+h1
+{
+	text-align: center;
+	font-size: 60px;
+}
+
+h2
+{
+	text-align: center;
 }

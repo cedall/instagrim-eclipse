@@ -1,9 +1,11 @@
 package uk.ac.dundee.computing.aec.instagrim.lib;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.datastax.driver.core.*;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
 
 public final class Keyspaces {
 
@@ -36,25 +38,19 @@ public final class Keyspaces {
                     + "pic_added timestamp,\n"
                     + "PRIMARY KEY (user,pic_added)\n"
                     + ") WITH CLUSTERING ORDER BY (pic_added desc);";
-            String CreateAddressType = "CREATE TYPE if not exists instagrim.address (\n"
-                    + "      street text,\n"
-                    + "      city text,\n"
-                    + "      zip int\n"
-                    + "  );";
             String CreateUserProfile = "CREATE TABLE if not exists instagrim.userprofiles (\n"
-                    + "      login text PRIMARY KEY,\n"
-                     + "     password text,\n"
-                    + "      first_name text,\n"
-                    + "      last_name text,\n"
-                    + "      email set<text>,\n"
-                    + "      addresses  map<text, frozen <address>>\n"
-                    + "  );";
+                    + " login varchar PRIMARY KEY,\n"
+                    + " password text,\n"
+                    + " first_name text,\n"
+                    + " last_name text,\n"
+                    + " email text,\n"
+                    + " profile_photo blob, \n"
+                    + ");";
             Session session = c.connect();
             try {
                 PreparedStatement statement = session
                         .prepare(createkeyspace);
-                BoundStatement boundStatement = new BoundStatement(
-                        statement);
+                BoundStatement boundStatement = new BoundStatement(statement);
                 ResultSet rs = session
                         .execute(boundStatement);
                 System.out.println("created instagrim ");
@@ -72,19 +68,11 @@ public final class Keyspaces {
                 System.out.println("Can't create tweet table " + et);
             }
             System.out.println("" + Createuserpiclist);
-
             try {
                 SimpleStatement cqlQuery = new SimpleStatement(Createuserpiclist);
                 session.execute(cqlQuery);
             } catch (Exception et) {
                 System.out.println("Can't create user pic list table " + et);
-            }
-            System.out.println("" + CreateAddressType);
-            try {
-                SimpleStatement cqlQuery = new SimpleStatement(CreateAddressType);
-                session.execute(cqlQuery);
-            } catch (Exception et) {
-                System.out.println("Can't create Address type " + et);
             }
             System.out.println("" + CreateUserProfile);
             try {

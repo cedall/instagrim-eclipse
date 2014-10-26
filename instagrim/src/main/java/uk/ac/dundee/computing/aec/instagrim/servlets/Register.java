@@ -6,9 +6,18 @@
 
 package uk.ac.dundee.computing.aec.instagrim.servlets;
 
+import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.Session;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.util.Date;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -16,7 +25,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import uk.ac.dundee.computing.aec.instagrim.lib.CassandraHosts;
+import uk.ac.dundee.computing.aec.instagrim.lib.Convertors;
 import uk.ac.dundee.computing.aec.instagrim.models.User;
 
 /**
@@ -45,15 +56,17 @@ public class Register extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String username=request.getParameter("username");
+    	String user_name=request.getParameter("user_name");
         String password=request.getParameter("password");
+        String first_name=request.getParameter("first_name");
+    	String last_name=request.getParameter("last_name");
+    	String email=request.getParameter("email");
         
-        User us=new User();
-        us.setCluster(cluster);
-        us.RegisterUser(username, password);
-        
-	response.sendRedirect("/Instagrim");
-        
+    	
+    	User us=new User();
+    	us.setCluster(cluster);
+    	us.RegisterUser(user_name, password, first_name, last_name, email);
+    	response.sendRedirect("/Instagrim");
     }
 
     /**
